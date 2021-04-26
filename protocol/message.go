@@ -34,8 +34,9 @@ const (
 	signalExternalWorkflowCommand = "SignalExternalWorkflow"
 	cancelExternalWorkflowCommand = "CancelExternalWorkflow"
 
-	cancelCommand = "Cancel"
-	panicCommand  = "Panic"
+	cancelCommand                 = "Cancel"
+	panicCommand                  = "Panic"
+	upsertSearchAttributesCommand = "UpsertSearchAttributes"
 )
 
 // GetWorkerInfo reads worker information.
@@ -180,6 +181,10 @@ type Panic struct {
 	Message string `json:"message"`
 }
 
+type UpsertSearchAttributes struct {
+	SearchAttributes map[string]string
+}
+
 // ActivityParams maps activity command to activity params.
 func (cmd ExecuteActivity) ActivityParams(env bindings.WorkflowEnvironment, payloads *commonpb.Payloads) bindings.ExecuteActivityParams {
 	params := bindings.ExecuteActivityParams{
@@ -259,6 +264,8 @@ func commandName(cmd interface{}) (string, error) {
 		return cancelCommand, nil
 	case Panic, *Panic:
 		return panicCommand, nil
+	case UpsertSearchAttributes, *UpsertSearchAttributes:
+		return upsertSearchAttributesCommand, nil
 	default:
 		return "", errors.E(op, errors.Errorf("undefined command type: %s", cmd))
 	}
@@ -327,6 +334,9 @@ func initCommand(name string) (interface{}, error) {
 
 	case panicCommand:
 		return &Panic{}, nil
+
+	case upsertSearchAttributesCommand:
+		return &UpsertSearchAttributes{}, nil
 
 	default:
 		return nil, errors.E(op, errors.Errorf("undefined command name: %s", name))
